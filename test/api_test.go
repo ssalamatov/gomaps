@@ -132,7 +132,7 @@ func TestAPIGetEmptyCountries(t *testing.T) {
 func TestAPIGetCountryById(t *testing.T) {
 	client.PrepareDB(true)
 
-	req, err := http.NewRequest("GET", GetFullUrl("countries/1"), nil)
+	req, err := http.NewRequest("GET", GetFullUrl("country/1"), nil)
 	if err != nil {
 		t.Errorf("Failed request %v", err)
 	}
@@ -148,7 +148,7 @@ func TestAPIGetCountryById(t *testing.T) {
 func TestAPIGetCountryByIdNotFound(t *testing.T) {
 	client.PrepareDB(true)
 
-	req, err := http.NewRequest("GET", GetFullUrl("countries/5"), nil)
+	req, err := http.NewRequest("GET", GetFullUrl("country/5"), nil)
 	if err != nil {
 		t.Errorf("Failed request %v", err)
 	}
@@ -164,7 +164,7 @@ func TestAPIGetCountryByIdNotFound(t *testing.T) {
 func TestAPIGetCountryByIdError(t *testing.T) {
 	client.PrepareDB(true)
 
-	req, err := http.NewRequest("GET", GetFullUrl("countries/a"), nil)
+	req, err := http.NewRequest("GET", GetFullUrl("country/a"), nil)
 	if err != nil {
 		t.Errorf("Failed request %v", err)
 	}
