@@ -19,7 +19,7 @@ func NewPgClient(ctx context.Context, config *config.Config) (pool *pgxpool.Pool
 }
 
 func GetCountries(ctx context.Context, pool *pgxpool.Pool) (*[]country.GetCountryDTO, error) {
-	rows, err := pool.Query(ctx, "select id, name from country")
+	rows, err := pool.Query(ctx, `SELECT id, name FROM country`)
 	if err != nil {
 		return nil, NewErrQueryFailed(err)
 	}
@@ -36,7 +36,7 @@ func GetCountries(ctx context.Context, pool *pgxpool.Pool) (*[]country.GetCountr
 }
 
 func GetCountryById(ctx context.Context, pool *pgxpool.Pool, id int) (*country.GetCountryDTO, error) {
-	rows, err := pool.Query(ctx, "select id, name from country where id=$1", id)
+	rows, err := pool.Query(ctx, `SELECT id, name FROM country WHERE id=$1`, id)
 	if err != nil {
 		return nil, NewErrQueryFailed(err)
 	}
@@ -52,7 +52,7 @@ func GetCountryById(ctx context.Context, pool *pgxpool.Pool, id int) (*country.G
 }
 
 func GetCities(ctx context.Context, pool *pgxpool.Pool) (*[]city.GetCityDTO, error) {
-	rows, err := pool.Query(ctx, "select id, name, city.is_capital, city.found_at, city.population from city")
+	rows, err := pool.Query(ctx, `SELECT id, name, city.is_capital, city.found_at, city.population FROM city`)
 	if err != nil {
 		return nil, NewErrQueryFailed(err)
 	}
@@ -70,9 +70,9 @@ func GetCities(ctx context.Context, pool *pgxpool.Pool) (*[]city.GetCityDTO, err
 
 func GetCityInfo(ctx context.Context, pool *pgxpool.Pool, name string) (*[]city.GetCityInfoDTO, error) {
 	rows, err := pool.Query(
-		ctx, `select city.id, city.name, city.is_capital, city.found_at, city.population, country.name as country from
-			(select * from city where name=$1) as city
-				inner join country on city.country_id=country.id`, name)
+		ctx, `SELECT city.id, city.name, city.is_capital, city.found_at, city.population, country.name AS country FROM
+			(SELECT * FROM city WHERE name=$1) AS city
+				INNER JOIN country ON city.country_id=country.id`, name)
 	if err != nil {
 		return nil, NewErrQueryFailed(err)
 	}
@@ -89,7 +89,7 @@ func GetCityInfo(ctx context.Context, pool *pgxpool.Pool, name string) (*[]city.
 }
 
 func RemoveCity(ctx context.Context, pool *pgxpool.Pool, id int) error {
-	ctag, err := pool.Exec(ctx, "delete from city where id=$1", id)
+	ctag, err := pool.Exec(ctx, `DELETE FROM city WHERE id=$1`, id)
 
 	if err != nil {
 		return NewErrQueryFailed(err)
@@ -102,7 +102,23 @@ func RemoveCity(ctx context.Context, pool *pgxpool.Pool, id int) error {
 }
 
 func RemoveCountry(ctx context.Context, pool *pgxpool.Pool, id int) error {
-	ctag, err := pool.Exec(ctx, "delete from country where id=$1", id)
+	ctag, err := pool.Exec(ctx, `DELETE FROM country WHERE id=$1`, id)
+
+	if err != nil {
+		return NewErrQueryFailed(err)
+	}
+
+	if ctag.RowsAffected() != 1 {
+		return NewErrNotFound(err)
+	}
+	return nil
+}
+
+func CreateCity(ctx context.Context, pool *pgxpool.Pool, city *city.CreateCityDTO) error {
+	ctag, err := pool.Exec(
+		ctx,
+		`INSERT INTO city (name, country_id, is_capital, found_at, population) VALUES ($1, $2, $3, $4, $5)`,
+		city.Name, city.Country, city.IsCapital, city.FoundAt, city.Population)
 
 	if err != nil {
 		return NewErrQueryFailed(err)

@@ -177,6 +177,23 @@ func TestAPIGetCountryByIdError(t *testing.T) {
 		resp)
 }
 
+func TestAPICreateCity(t *testing.T) {
+	client.PrepareDB(true)
+
+	city := strings.NewReader(`{"name":"Ufa","is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z","country_id":1}`)
+	req, err := http.NewRequest("POST", GetFullUrl("city"), city)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusNoContent,
+		``,
+		resp)
+}
+
 func TestAPIRemoveCity(t *testing.T) {
 	client.PrepareDB(true)
 

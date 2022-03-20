@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ssalamatov/gomaps/internal/city"
 	"github.com/ssalamatov/gomaps/pkg/client/postgresql"
 )
 
@@ -20,6 +21,15 @@ func GetValidateId(c *gin.Context) (int, error) {
 		return 0, NewErrValidation(err)
 	}
 	return id, nil
+}
+
+func GetValidateCity(c *gin.Context) (*city.CreateCityDTO, error) {
+	var city city.CreateCityDTO
+
+	if err := c.BindJSON(&city); err != nil {
+		return nil, NewErrValidation(err)
+	}
+	return &city, nil
 }
 
 func (server *Server) GetAllCountriesHandler(c *gin.Context) {
@@ -43,6 +53,21 @@ func (server *Server) GetCountryHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, country)
+}
+
+func (server *Server) CreateCityHandler(c *gin.Context) {
+	city, err := GetValidateCity(c)
+	if err != nil {
+		HandleErrorResponse(c, err)
+		return
+	}
+
+	err = postgresql.CreateCity(server.ctx, server.pool, city)
+	if err != nil {
+		HandleErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
 }
 
 func (server *Server) GetAllCitiesHandler(c *gin.Context) {

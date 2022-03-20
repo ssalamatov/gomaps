@@ -26,6 +26,7 @@ func main() {
 	router.GET("/countries/:id", server.GetCountryHandler)
 	router.GET("/city/info", server.GetCityInfoHandler)
 	router.GET("/city/:id", server.GetCountryHandler)
+	router.POST("/city", server.CreateCityHandler)
 	router.DELETE("/city/:id", server.RemoveCityHandler)
 	router.DELETE("/country/:id", server.RemoveCountryHandler)
 
