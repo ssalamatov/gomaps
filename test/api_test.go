@@ -173,14 +173,14 @@ func TestAPIGetCountryByIdError(t *testing.T) {
 	CheckResponse(
 		t,
 		http.StatusBadRequest,
-		`{"error":"validation failed. strconv.Atoi: parsing \"a\": invalid syntax"}`,
+		`{"error":"validation failed"}`,
 		resp)
 }
 
 func TestAPICreateCity(t *testing.T) {
 	client.PrepareDB(true)
 
-	city := strings.NewReader(`{"name":"Ufa","is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z","country_id":1}`)
+	city := strings.NewReader(`{"name":"Ufa","is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z","country":"Russia"}`)
 	req, err := http.NewRequest("POST", GetFullUrl("city"), city)
 	if err != nil {
 		t.Errorf("Failed request %v", err)
@@ -192,6 +192,71 @@ func TestAPICreateCity(t *testing.T) {
 		http.StatusNoContent,
 		``,
 		resp)
+}
+
+func TestAPICreateCityCountryNotFound(t *testing.T) {
+	client.PrepareDB(false)
+
+	city := strings.NewReader(`{"name":"Ufa","is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z","country":"Russia"}`)
+	req, err := http.NewRequest("POST", GetFullUrl("city"), city)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusBadRequest,
+		`{"error":"not found"}`,
+		resp)
+}
+
+func TestAPICreateCityValidationFailed(t *testing.T) {
+	client.PrepareDB(true)
+
+	data := []string{
+		`{"is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z","country":"Russia"}`,
+		`{"name":"Ufa","is_capital":false,"found_at":"2022-03-19T23:36:13.183732Z","country":"Russia"}`,
+		`{"name":"Ufa","is_capital":false,"population":1,"country":"Russia"}`,
+		`{"name":"Ufa","is_capital":false,"population":1,"found_at":"2022-03-19T23:36:13.183732Z"}`}
+
+	for _, buf := range data {
+		city := strings.NewReader(buf)
+		req, err := http.NewRequest("POST", GetFullUrl("city"), city)
+		if err != nil {
+			t.Errorf("Failed request %v", err)
+		}
+
+		resp := client.NewClient().Execute(req)
+		CheckResponse(
+			t,
+			http.StatusBadRequest,
+			`{"error":"body decode failed"}`,
+			resp)
+	}
+}
+
+func TestAPICreateCityOptionalFields(t *testing.T) {
+	// is_capiatal is optioanl value. can be omitted.
+	client.PrepareDB(true)
+
+	data := []string{
+		`{"name":"Ufa","population":1,"found_at":"2022-03-19T23:36:13.183732Z","country":"Russia"}`}
+
+	for _, buf := range data {
+		city := strings.NewReader(buf)
+		req, err := http.NewRequest("POST", GetFullUrl("city"), city)
+		if err != nil {
+			t.Errorf("Failed request %v", err)
+		}
+
+		resp := client.NewClient().Execute(req)
+		CheckResponse(
+			t,
+			http.StatusNoContent,
+			``,
+			resp)
+	}
 }
 
 func TestAPIRemoveCity(t *testing.T) {
@@ -271,6 +336,6 @@ func TestAPIRemoveCountryError(t *testing.T) {
 	CheckResponse(
 		t,
 		http.StatusBadRequest,
-		`{"error":"failed query. ERROR: update or delete on table \"country\" violates foreign key constraint \"city_country_id_fkey\" on table \"city\" (SQLSTATE 23503)"}`,
+		`{"error":"sql failed query"}`,
 		resp)
 }

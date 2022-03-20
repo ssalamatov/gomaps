@@ -27,7 +27,7 @@ type Config struct {
 func NewConfig() (*Config, error) {
 	root, ok := os.LookupEnv("GOMAPSROOT")
 	if !ok {
-		return nil, NewErrMissingEnv(nil)
+		return nil, fmt.Errorf("%w", ErrMissingEnv)
 	}
 
 	configPath := path.Join(root, "config", FileConfigName)
@@ -53,13 +53,13 @@ func ReadConfig(configPath string) (*Config, error) {
 
 	f, err := os.Open(configPath)
 	if err != nil {
-		return nil, NewErrConfigParseFailed(err)
+		return nil, fmt.Errorf("%w", ErrConfigParseFailed)
 	}
 	defer f.Close()
 
 	decoder := yaml.NewDecoder(f)
 	if err := decoder.Decode(&config); err != nil {
-		return nil, NewErrConfigNotFound(err)
+		return nil, fmt.Errorf("%w", ErrConfigNotFound)
 	}
 	return config, nil
 }

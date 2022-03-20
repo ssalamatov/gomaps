@@ -1,13 +1,6 @@
 package server
 
-import (
-	"errors"
-
-	"github.com/ssalamatov/gomaps/internal/server_error"
-)
+import "errors"
 
 var ErrValidation = errors.New("validation failed")
-
-func NewErrValidation(err error) error {
-	return server_error.NewServerError(err, ErrValidation)
-}
+var ErrDecodeBody = errors.New("body decode failed")

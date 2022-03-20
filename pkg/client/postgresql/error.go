@@ -1,23 +1,8 @@
 package postgresql
 
-import (
-	"errors"
-
-	"github.com/ssalamatov/gomaps/internal/server_error"
-)
+import "errors"
 
 var ErrConnect = errors.New("failed postgresql connection")
-var ErrQueryFailed = errors.New("failed query")
+var ErrSqlQueryFailed = errors.New("sql failed query")
+var ErrSqlScanFailed = errors.New("sql scan query")
 var ErrNotFound = errors.New("not found")
-
-func NewErrConnect(err error) error {
-	return server_error.NewServerError(err, ErrConnect)
-}
-
-func NewErrQueryFailed(err error) error {
-	return server_error.NewServerError(err, ErrQueryFailed)
-}
-
-func NewErrNotFound(err error) error {
-	return server_error.NewServerError(err, ErrNotFound)
-}

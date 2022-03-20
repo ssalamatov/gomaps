@@ -1,6 +1,9 @@
 package server
 
 import (
+	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -10,15 +13,21 @@ import (
 )
 
 func HandleErrorResponse(c *gin.Context, err error) {
-	response := make(map[string]string)
-	response["error"] = err.Error()
-	c.JSON(http.StatusBadRequest, response)
+	resp := make(map[string]string)
+	if e := errors.Unwrap(err); e != nil {
+		resp["error"] = e.Error()
+	} else {
+		resp["error"] = err.Error()
+	}
+	log.Println(err)
+	c.JSON(http.StatusBadRequest, resp)
 }
 
 func GetValidateId(c *gin.Context) (int, error) {
-	id, err := strconv.Atoi(c.Params.ByName("id"))
+	cid := c.Params.ByName("id")
+	id, err := strconv.Atoi(cid)
 	if err != nil {
-		return 0, NewErrValidation(err)
+		return 0, fmt.Errorf("id can be only integer. got %v: %w", cid, ErrValidation)
 	}
 	return id, nil
 }
@@ -27,7 +36,7 @@ func GetValidateCity(c *gin.Context) (*city.CreateCityDTO, error) {
 	var city city.CreateCityDTO
 
 	if err := c.BindJSON(&city); err != nil {
-		return nil, NewErrValidation(err)
+		return nil, fmt.Errorf("invalid json body. got %v: %w", city, ErrDecodeBody)
 	}
 	return &city, nil
 }
