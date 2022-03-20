@@ -60,7 +60,7 @@ func TablesExists(ctx context.Context, pool *pgxpool.Pool) {
 }
 
 func InsertTestData(ctx context.Context, pool *pgxpool.Pool) {
-	ExecQuery(ctx, pool, `INSERT INTO country (name) VALUES ('Russia')`)
+	ExecQuery(ctx, pool, `INSERT INTO country (name) VALUES ('Russia'), ('USA')`)
 	ExecQuery(ctx, pool, `INSERT INTO city (country_id, is_capital, found_at, name, population) VALUES (1, true, '2022-03-19T23:36:13.183732Z', 'Moscow', 5)`)
 }
 

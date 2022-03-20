@@ -24,9 +24,10 @@ func main() {
 	router.GET("/cities", server.GetAllCitiesHandler)
 	router.GET("/countries", server.GetAllCountriesHandler)
 	router.GET("/countries/:id", server.GetCountryHandler)
+	router.GET("/city/info", server.GetCityInfoHandler)
 	router.GET("/city/:id", server.GetCountryHandler)
 	router.DELETE("/city/:id", server.RemoveCityHandler)
-	router.GET("/city/info", server.GetCityInfoHandler)
+	router.DELETE("/country/:id", server.RemoveCountryHandler)
 
 	log.Fatal(http.ListenAndServe(config.GetAppAddr(), router))
 }

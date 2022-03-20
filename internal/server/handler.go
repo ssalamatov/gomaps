@@ -14,6 +14,14 @@ func HandleErrorResponse(c *gin.Context, err error) {
 	c.JSON(http.StatusBadRequest, response)
 }
 
+func GetValidateId(c *gin.Context) (int, error) {
+	id, err := strconv.Atoi(c.Params.ByName("id"))
+	if err != nil {
+		return 0, NewErrValidation(err)
+	}
+	return id, nil
+}
+
 func (server *Server) GetAllCountriesHandler(c *gin.Context) {
 	countries, err := postgresql.GetCountries(server.ctx, server.pool)
 	if err != nil {
@@ -24,7 +32,7 @@ func (server *Server) GetAllCountriesHandler(c *gin.Context) {
 }
 
 func (server *Server) GetCountryHandler(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("id"))
+	id, err := GetValidateId(c)
 	if err != nil {
 		HandleErrorResponse(c, err)
 		return
@@ -62,13 +70,28 @@ func (server *Server) GetCityInfoHandler(c *gin.Context) {
 }
 
 func (server *Server) RemoveCityHandler(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("id"))
+	id, err := GetValidateId(c)
 	if err != nil {
 		HandleErrorResponse(c, err)
 		return
 	}
 
 	err = postgresql.RemoveCity(server.ctx, server.pool, id)
+	if err != nil {
+		HandleErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+func (server *Server) RemoveCountryHandler(c *gin.Context) {
+	id, err := GetValidateId(c)
+	if err != nil {
+		HandleErrorResponse(c, err)
+		return
+	}
+
+	err = postgresql.RemoveCountry(server.ctx, server.pool, id)
 	if err != nil {
 		HandleErrorResponse(c, err)
 		return

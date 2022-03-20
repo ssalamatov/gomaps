@@ -100,3 +100,16 @@ func RemoveCity(ctx context.Context, pool *pgxpool.Pool, id int) error {
 	}
 	return nil
 }
+
+func RemoveCountry(ctx context.Context, pool *pgxpool.Pool, id int) error {
+	ctag, err := pool.Exec(ctx, "delete from country where id=$1", id)
+
+	if err != nil {
+		return NewErrQueryFailed(err)
+	}
+
+	if ctag.RowsAffected() != 1 {
+		return NewErrNotFound(err)
+	}
+	return nil
+}

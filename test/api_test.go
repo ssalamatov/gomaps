@@ -109,7 +109,7 @@ func TestAPIGetCountries(t *testing.T) {
 	CheckResponse(
 		t,
 		http.StatusOK,
-		`[{"id":1,"name":"Russia"}]`,
+		`[{"id":1,"name":"Russia"},{"id":2,"name":"USA"}]`,
 		resp)
 }
 
@@ -126,6 +126,54 @@ func TestAPIGetEmptyCountries(t *testing.T) {
 		t,
 		http.StatusOK,
 		`[]`,
+		resp)
+}
+
+func TestAPIGetCountryById(t *testing.T) {
+	client.PrepareDB(true)
+
+	req, err := http.NewRequest("GET", GetFullUrl("countries/1"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusOK,
+		`{"id":1,"name":"Russia"}`,
+		resp)
+}
+
+func TestAPIGetCountryByIdNotFound(t *testing.T) {
+	client.PrepareDB(true)
+
+	req, err := http.NewRequest("GET", GetFullUrl("countries/5"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusBadRequest,
+		`{"error":"not found"}`,
+		resp)
+}
+
+func TestAPIGetCountryByIdError(t *testing.T) {
+	client.PrepareDB(true)
+
+	req, err := http.NewRequest("GET", GetFullUrl("countries/a"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusBadRequest,
+		`{"error":"validation failed. strconv.Atoi: parsing \"a\": invalid syntax"}`,
 		resp)
 }
 
@@ -158,5 +206,54 @@ func TestAPIRemoveCityNotFound(t *testing.T) {
 		t,
 		http.StatusBadRequest,
 		`{"error":"not found"}`,
+		resp)
+}
+
+func TestAPIRemoveCountryNotFound(t *testing.T) {
+	client.PrepareDB(false)
+
+	req, err := http.NewRequest("DELETE", GetFullUrl("country/1"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusBadRequest,
+		`{"error":"not found"}`,
+		resp)
+}
+
+func TestAPIRemoveCountry(t *testing.T) {
+	client.PrepareDB(true)
+
+	req, err := http.NewRequest("DELETE", GetFullUrl("country/2"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusNoContent,
+		``,
+		resp)
+}
+
+func TestAPIRemoveCountryError(t *testing.T) {
+	// Countries with linked cities can not be removed
+	client.PrepareDB(true)
+
+	req, err := http.NewRequest("DELETE", GetFullUrl("country/1"), nil)
+	if err != nil {
+		t.Errorf("Failed request %v", err)
+	}
+
+	resp := client.NewClient().Execute(req)
+	CheckResponse(
+		t,
+		http.StatusBadRequest,
+		`{"error":"failed query. ERROR: update or delete on table \"country\" violates foreign key constraint \"city_country_id_fkey\" on table \"city\" (SQLSTATE 23503)"}`,
 		resp)
 }
